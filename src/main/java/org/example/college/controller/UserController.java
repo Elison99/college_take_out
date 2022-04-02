@@ -10,6 +10,7 @@ import org.example.college.common.ValidateCodeUtils;
 import org.example.college.entity.User;
 import org.example.college.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @Slf4j
@@ -25,6 +27,9 @@ import java.util.Map;
 public class UserController {
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      *发送短信验证码
@@ -47,7 +52,11 @@ public class UserController {
 //            SMSUtils.sendSMS(phone,SMSUtils.VALIDATE_CODE,String.valueOf(code));
 
             //需要将生成的验证码保存到session
-            httpSession.setAttribute(phone,code);
+//            httpSession.setAttribute(phone,code);
+
+            //将生成的验证码保存到redis
+            redisTemplate.opsForValue().set(phone,code,5, TimeUnit.MINUTES);
+
             return Result.success("手机验证码短信发送成功");
         }
         return Result.error("手机验证码短信发送成功");
@@ -61,7 +70,11 @@ public class UserController {
         String phone = map.get("phone").toString();
         String code = map.get("code").toString();
         //从session中获取保存的验证码
-        Object codeInSession = String.valueOf(httpSession.getAttribute(phone));
+//        Object codeInSession = String.valueOf(httpSession.getAttribute(phone));
+
+        //从redis中获取缓存的验证码
+        Object codeInSession = redisTemplate.opsForValue().get(phone);
+        codeInSession = String.valueOf(codeInSession);
 
         //进行验证码比较
         if (codeInSession != null &&codeInSession.equals(code)){
@@ -80,6 +93,10 @@ public class UserController {
             }
 
             httpSession.setAttribute("user",user.getId());
+
+            //登陆成功，删除验证码
+            redisTemplate.delete(phone);
+
             return Result.success(user);
         }
 
