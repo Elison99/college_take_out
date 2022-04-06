@@ -3,6 +3,8 @@ package org.example.college.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.example.college.common.Result;
 import org.example.college.dto.SetmealDto;
@@ -26,6 +28,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/setmeal")
 @Slf4j
+@Api(tags = "套餐相关接口")
 public class SetmealController {
 
     @Autowired
@@ -39,6 +42,7 @@ public class SetmealController {
 
     @CacheEvict(value = "setmealCache",allEntries = true)//清除setmealCache名称下,所有的缓存数据
     @PostMapping
+    @ApiOperation(value = "新增套餐接口")
     public Result<String> save(@RequestBody SetmealDto setmealDto){
         log.info("套餐信息:{}",setmealDto);
 
@@ -55,6 +59,7 @@ public class SetmealController {
      * @return
      */
     @GetMapping("/page")
+    @ApiOperation(value = "套餐分页查询接口")
     public Result<Page> page(int page,int pageSize,String name){
         //分页构造器
         Page<Setmeal> pageInfo = new Page<Setmeal>(page, pageSize);
@@ -102,6 +107,7 @@ public class SetmealController {
 
     @DeleteMapping
     @CacheEvict(value = "setmealCache",allEntries = true)//清除setmealCache名称下,所有的缓存数据
+    @ApiOperation(value = "套餐删除接口")
     public Result<String> delete(@RequestParam List<Long> ids){
         log.info("ids:{}",ids);
         setmealService.removeWithDish(ids);
@@ -115,6 +121,7 @@ public class SetmealController {
      */
     @Cacheable(value = "setmealCache",key = "#setmeal.categoryId+'_'+#setmeal.status")
     @GetMapping("/list")
+    @ApiOperation("套餐条件查询接口")
     public Result<List<Setmeal>> list(Setmeal setmeal){
         LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(setmeal.getCategoryId() != null,Setmeal::getCategoryId,setmeal.getCategoryId());

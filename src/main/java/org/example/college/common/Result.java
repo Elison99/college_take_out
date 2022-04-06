@@ -1,5 +1,8 @@
 package org.example.college.common;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,11 +16,19 @@ import java.util.Map;
  *
  * 因为 @Cacheable 会将方法的返回值R缓存在Redis中，而在Redis中存储对象，该对象是需要被序列化的，而对象要想被成功的序列化，就必须得实现 Serializable 接口。而当前我们定义的R，并未实现 Serializable 接口。所以，要解决该异常，只需要让R实现  Serializable 接口即可。如下：
  */
+@ApiModel("返回结果")
 public class Result<T> implements Serializable {
 
+    @ApiModelProperty("编码")
     private Integer code; //编码：1成功，0和其它数字为失败
+
+    @ApiModelProperty("错误信息")
     private String msg; //错误信息
+
+    @ApiModelProperty("数据")
     private T data; //数据,使用泛型增加通用性
+
+    @ApiModelProperty("动态数据")
     private Map map = new HashMap(); //动态数据
 
     /**
